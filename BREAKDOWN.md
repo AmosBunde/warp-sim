@@ -2,7 +2,7 @@
 
 This document is the issue-level plan. Every issue below is opened on GitHub with a Problem or Hypothesis section, a Design section, and Acceptance criteria, assigned a label and a milestone, developed on a linked branch named `<type>/<n>-<slug>`, and merged through a pull request that closes it. Milestones are sequential: a milestone does not start until the previous one is merged to `main` with CI fully green, sanitizers included.
 
-Plan numbers (P1 and so on) are followed by the GitHub issue number in parentheses. Two issues were added during execution to keep pull requests within the size guideline (#20 assembler lexer, #19 reconvergence analysis) and one was added for the Python bindings (#30); the barrier planned as P18 was delivered with the scheduler in #29. Final state: 30 issues, each closed by a squash-merged pull request from a linked development branch.
+Plan numbers (P1 and so on) are followed by the GitHub issue number in parentheses. Two issues were added during execution to keep pull requests within the size guideline (#20 assembler lexer, #19 reconvergence analysis) and one was added for the Python bindings (#30); the barrier planned as P18 was delivered with the scheduler in #29. Two closing chores followed the plan (#62 diagram prose conventions, #64 this accounting note). Every issue in the tracker is closed by a squash-merged pull request from a linked development branch; the tracker is authoritative for the count.
 
 ## Labels
 
