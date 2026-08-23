@@ -12,6 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(WARPSIM_BUILD_TESTS "Build the C++ test suite" ON)
+option(WARPSIM_BUILD_PYTHON "Build the pybind11 extension" ON)
 set(WARPSIM_SANITIZER
     "none"
     CACHE STRING "Sanitizer set to enable: none, address, undefined")
@@ -24,4 +25,8 @@ add_subdirectory(src)
 if(WARPSIM_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+if(WARPSIM_BUILD_PYTHON)
+    add_subdirectory(python)
 endif()
