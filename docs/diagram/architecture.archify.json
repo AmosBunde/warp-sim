@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "WarpSim Architecture",
+    "subtitle": "Functional GPU simulator: WISA tooling, SIMT core, memory system, instrumentation, and the NumPy differential harness",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "tooling",
+        "label": "WISA tooling",
+        "focus": [
+          "src",
+          "asm",
+          "prog",
+          "dis"
+        ],
+        "note": "Source text becomes encoded words with reconvergence points; the disassembler closes the round trip."
+      },
+      {
+        "id": "core",
+        "label": "SIMT core and memory",
+        "focus": [
+          "prog",
+          "sched",
+          "warp",
+          "gmem",
+          "smem"
+        ],
+        "note": "The scheduler issues warps in lockstep; loads and stores flow through the analyzers."
+      },
+      {
+        "id": "harness",
+        "label": "Differential harness",
+        "focus": [
+          "instr",
+          "py",
+          "gold",
+          "test"
+        ],
+        "note": "Outputs and counters reach Python, where NumPy golden models make correctness checkable."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "src",
+      "type": "external",
+      "label": "WISA source",
+      "sublabel": "kernels/*.wisa",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "asm",
+      "type": "backend",
+      "label": "Assembler",
+      "sublabel": "lexer, parser, post-dominators",
+      "pos": [
+        250,
+        300
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "dis",
+      "type": "backend",
+      "label": "Disassembler",
+      "sublabel": "canonical text",
+      "pos": [
+        40,
+        120
+      ],
+      "size": [
+        150,
+        60
+      ]
+    },
+    {
+      "id": "prog",
+      "type": "database",
+      "label": "Program",
+      "sublabel": "64-bit words, labels",
+      "pos": [
+        480,
+        300
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "sched",
+      "type": "backend",
+      "label": "Warp scheduler",
+      "sublabel": "round robin, barriers",
+      "pos": [
+        700,
+        300
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "warp",
+      "type": "backend",
+      "label": "Warp",
+      "sublabel": "mask stack, registers, ALU",
+      "pos": [
+        930,
+        300
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "tag": "32 lanes"
+    },
+    {
+      "id": "gmem",
+      "type": "database",
+      "label": "Global memory",
+      "sublabel": "coalescing analyzer",
+      "pos": [
+        930,
+        120
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "smem",
+      "type": "database",
+      "label": "Shared memory",
+      "sublabel": "bank conflict counter",
+      "pos": [
+        1170,
+        120
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "instr",
+      "type": "backend",
+      "label": "Instrumentation",
+      "sublabel": "counters, ordinal timing",
+      "pos": [
+        1170,
+        300
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "py",
+      "type": "frontend",
+      "label": "pybind11 module",
+      "sublabel": "warpsim._core",
+      "pos": [
+        1170,
+        500
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "gold",
+      "type": "backend",
+      "label": "NumPy golden models",
+      "sublabel": "authoritative",
+      "pos": [
+        700,
+        500
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "test",
+      "type": "security",
+      "label": "Differential suite",
+      "sublabel": "pytest, seeded, in CI",
+      "pos": [
+        930,
+        500
+      ],
+      "size": [
+        160,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "SIMT core and memory system",
+      "wraps": [
+        "sched",
+        "warp",
+        "gmem",
+        "smem",
+        "instr"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Differential harness (Python)",
+      "wraps": [
+        "py",
+        "gold",
+        "test"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "src-to-asm",
+      "from": "src",
+      "to": "asm",
+      "label": "text",
+      "variant": "emphasis"
+    },
+    {
+      "id": "asm-to-prog",
+      "from": "asm",
+      "to": "prog",
+      "label": "encode",
+      "variant": "emphasis"
+    },
+    {
+      "id": "prog-to-dis",
+      "from": "prog",
+      "to": "dis",
+      "label": "decode",
+      "variant": "dashed"
+    },
+    {
+      "id": "dis-to-src",
+      "from": "dis",
+      "to": "src",
+      "label": "round trip",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "prog-to-sched",
+      "from": "prog",
+      "to": "sched",
+      "label": "launch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sched-to-warp",
+      "from": "sched",
+      "to": "warp",
+      "label": "issue",
+      "variant": "emphasis"
+    },
+    {
+      "id": "warp-to-gmem",
+      "from": "warp",
+      "to": "gmem",
+      "label": "ld/st.global"
+    },
+    {
+      "id": "warp-to-smem",
+      "from": "warp",
+      "to": "smem",
+      "label": "ld/st.shared",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "warp-to-instr",
+      "from": "warp",
+      "to": "instr",
+      "label": "events",
+      "variant": "emphasis"
+    },
+    {
+      "id": "instr-to-py",
+      "from": "instr",
+      "to": "py",
+      "label": "counters",
+      "labelDy": 24
+    },
+    {
+      "id": "py-to-test",
+      "from": "py",
+      "to": "test",
+      "label": "outputs"
+    },
+    {
+      "id": "gold-to-test",
+      "from": "gold",
+      "to": "test",
+      "label": "expected"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Tooling",
+      "items": [
+        "Assembler records the immediate post-dominator of every guarded branch",
+        "Disassembler round-trips every opcode in CI"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Core and memory",
+      "items": [
+        "Lockstep warps of 32 lanes with an active-mask divergence stack",
+        "Coalescing analyzer and bank-conflict counter are the observables"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Instrumentation",
+      "items": [
+        "Counters compose into an ordinal timing estimate",
+        "No cycle accuracy is claimed anywhere"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Differential harness",
+      "items": [
+        "NumPy golden models are authoritative",
+        "Randomized seeds, bit-exact integers, stated float tolerance"
+      ]
+    }
+  ]
+}
