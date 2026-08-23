@@ -28,6 +28,19 @@ def vecadd_s32(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return _wrap(a.astype(np.int64) + b.astype(np.int64))
 
 
+REDUCE_BLOCK = 256
+
+
+def reduce_blocks(x: np.ndarray) -> np.ndarray:
+    """Golden model of kernels/reduce.wisa: per-block int32 sums with wraparound,
+    elements past the end of ``x`` counting as zero."""
+    n = len(x)
+    blocks = (n + REDUCE_BLOCK - 1) // REDUCE_BLOCK
+    padded = np.zeros(blocks * REDUCE_BLOCK, dtype=np.int64)
+    padded[:n] = x.astype(np.int64)
+    return _wrap(padded.reshape(blocks, REDUCE_BLOCK).sum(axis=1))
+
+
 def torture_nested(x: np.ndarray) -> np.ndarray:
     """Golden model of kernels/torture/nested.wisa."""
     x = x.astype(_I32)

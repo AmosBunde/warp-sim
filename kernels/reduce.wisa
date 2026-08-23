@@ -1,0 +1,53 @@
+// Block reduction: partial[b] = sum of x[256 b .. 256 b + 255] (s32, wraps),
+// elements at or past n count as 0. Block size must be 256.
+//
+// Tree reduction in shared memory: at stride s, lanes below s add the value
+// s positions above; the active set halves each step, which is the
+// divergence this kernel exists to exercise. Every step ends in a barrier
+// executed at the reconvergence point so that the warp is whole again.
+.entry reduce
+.param x
+.param partial
+.param n
+.shared 1024
+
+        mov.sreg r0, %tid.x         // tid
+        mov.sreg r1, %ctaid.x       // block
+        shl r2, r1, 8
+        add r2, r2, r0              // i = block * 256 + tid
+        mov r3, 0                   // v = 0
+        ld.param r4, [n]
+        setp.ge.s32 p0, r2, r4
+    @p0 bra stage
+        shl r5, r2, 2
+        ld.param r6, [x]
+        add r6, r6, r5
+        ld.global r3, [r6]          // v = x[i]
+stage:
+        shl r7, r0, 2               // tid * 4
+        st.shared [r7], r3
+        bar.sync
+        mov r8, 128                 // stride
+loop:
+        setp.ge.s32 p1, r0, r8
+    @p1 bra skip
+        shl r9, r8, 2
+        add r9, r9, r7              // (tid + stride) * 4
+        ld.shared r10, [r7]
+        ld.shared r11, [r9]
+        add r10, r10, r11
+        st.shared [r7], r10
+skip:
+        bar.sync
+        shr r8, r8, 1
+        setp.gt.s32 p2, r8, 0
+    @p2 bra loop
+        setp.ne.s32 p3, r0, 0
+    @p3 exit
+        mov r12, 0
+        ld.shared r13, [r12]
+        shl r14, r1, 2
+        ld.param r15, [partial]
+        add r15, r15, r14
+        st.global [r15], r13
+        exit
