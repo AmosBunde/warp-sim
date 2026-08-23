@@ -24,8 +24,9 @@ class BlockSet {
 public:
     explicit BlockSet(std::size_t size, bool all)
         : words_((size + 63) / 64, all ? ~std::uint64_t{0} : 0), size_(size) {
-        if (all && size % 64 != 0) {
-            words_.back() &= (std::uint64_t{1} << (size % 64)) - 1;
+        // Clear the bits above `size` in the last word so that count() is exact.
+        if (all && !words_.empty() && size % 64 != 0) {
+            words_[words_.size() - 1] &= (std::uint64_t{1} << (size % 64)) - 1;
         }
     }
 
@@ -67,8 +68,9 @@ struct Cfg {
 
 Result<Cfg, ReconvergenceError> build_cfg(std::span<const Instruction> program) {
     const std::size_t n = program.size();
-    std::vector<bool> is_leader(n + 1, false);
-    is_leader[0] = true;
+    // std::uint8_t rather than std::vector<bool>: GCC's -Wnull-dereference fires
+    // on the bit-reference proxy at -O2 and the packed form buys nothing here.
+    std::vector<std::uint8_t> is_leader(n + 1, 0);
     for (std::size_t pc = 0; pc < n; ++pc) {
         const auto& i = program[pc];
         if (i.opcode == Opcode::Bra) {
@@ -76,17 +78,18 @@ Result<Cfg, ReconvergenceError> build_cfg(std::span<const Instruction> program) 
             if (target >= n) {
                 return fail(ReconvergenceError{.pc = pc, .message = "branch target out of range"});
             }
-            is_leader[target] = true;
+            is_leader[target] = 1;
         }
         if (is_terminator(i) && pc + 1 < n) {
-            is_leader[pc + 1] = true;
+            is_leader[pc + 1] = 1;
         }
     }
 
     Cfg cfg;
     cfg.block_of.assign(n, 0);
     for (std::size_t pc = 0; pc < n; ++pc) {
-        if (is_leader[pc]) {
+        // PC 0 is always a leader (specification 8.1).
+        if (pc == 0 || is_leader[pc] != 0) {
             cfg.leaders.push_back(pc);
         }
         cfg.block_of[pc] = cfg.leaders.size() - 1;
