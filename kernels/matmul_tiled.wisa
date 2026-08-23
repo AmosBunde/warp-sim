@@ -1,0 +1,103 @@
+// Tiled matmul: C[M][N] = A[M][K] B[K][N], float32, 16 x 16 tiles staged
+// through shared memory. Block 16 x 16; grid covers N (x) by M (y).
+//
+// Per tile step every lane loads one element of A and one of B (16
+// consecutive words per row of the warp: coalesced), the block barriers,
+// each lane runs 16 fused multiply-adds from shared memory, and the block
+// barriers again before the next tile overwrites the buffers.
+//
+// Shared layout: As at byte 0, Bs at byte 1024, each 16 x 16 words row
+// major. Reads of As broadcast within a row of the warp and the two rows
+// hit different banks; reads of Bs are 16 consecutive words broadcast to
+// both half-warps. Neither pattern conflicts, so no padding is needed.
+//
+// Out-of-range lanes do not exit: they must still load zeros and take the
+// barriers so that in-range lanes of the same block see whole tiles.
+.entry matmul_tiled
+.param a
+.param b
+.param c
+.param m
+.param n
+.param k
+.shared 2048
+
+        mov.sreg r0, %tid.x         // tx
+        mov.sreg r1, %tid.y         // ty
+        mov.sreg r2, %ctaid.x
+        mov.sreg r3, %ctaid.y
+        shl r2, r2, 4
+        add r2, r2, r0              // col
+        shl r3, r3, 4
+        add r3, r3, r1              // row
+        ld.param r4, [m]
+        ld.param r5, [n]
+        ld.param r6, [k]
+        ld.param r7, [a]
+        ld.param r8, [b]
+        shl r9, r1, 4
+        add r9, r9, r0
+        shl r9, r9, 2               // (ty * 16 + tx) * 4: this lane's slot in As and Bs
+        add r10, r9, 1024           // slot in Bs
+        shl r11, r1, 6              // ty * 16 * 4: start of As row ty
+        shl r12, r0, 2
+        add r12, r12, 1024          // 1024 + tx * 4: start of Bs column tx
+        mov r13, 0.0                // acc
+        mov r14, 0                  // t0 = first k of the current tile
+        setp.lt.s32 p4, r3, r4      // row in range
+        setp.lt.s32 p5, r2, r5      // col in range
+tile:
+        setp.ge.s32 p0, r14, r6
+    @p0 bra finish
+        // As[ty][tx] = A[row][t0 + tx] or 0
+        mov r15, 0.0
+        add r16, r14, r0            // kA = t0 + tx
+        setp.lt.s32 p1, r16, r6
+    @!p4 bra skip_a
+    @!p1 bra skip_a
+        mul r17, r3, r6
+        add r17, r17, r16
+        shl r17, r17, 2
+        add r17, r17, r7
+        ld.global r15, [r17]
+skip_a:
+        st.shared [r9], r15
+        // Bs[ty][tx] = B[t0 + ty][col] or 0
+        mov r18, 0.0
+        add r19, r14, r1            // kB = t0 + ty
+        setp.lt.s32 p2, r19, r6
+    @!p5 bra skip_b
+    @!p2 bra skip_b
+        mul r20, r19, r5
+        add r20, r20, r2
+        shl r20, r20, 2
+        add r20, r20, r8
+        ld.global r18, [r20]
+skip_b:
+        st.shared [r10], r18
+        bar.sync
+        mov r21, 0                  // kk
+        mov r22, r11                // &As[ty][0]
+        mov r23, r12                // &Bs[0][tx]
+inner:
+        ld.shared r24, [r22]
+        ld.shared r25, [r23]
+        ffma r13, r24, r25
+        add r22, r22, 4
+        add r23, r23, 64
+        add r21, r21, 1
+        setp.lt.s32 p3, r21, 16
+    @p3 bra inner
+        bar.sync
+        add r14, r14, 16
+        bra tile
+finish:
+    @!p4 exit
+    @!p5 exit
+        mul r26, r3, r5
+        add r26, r26, r2
+        shl r26, r26, 2
+        ld.param r27, [c]
+        add r26, r26, r27
+        st.global [r26], r13
+        exit
