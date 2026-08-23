@@ -13,10 +13,17 @@
 #   misc-include-cleaner: header mapping for the standard library is unreliable across
 #     the GCC and Clang matrix.
 #   bugprone-easily-swappable-parameters: register-index pairs are the normal ABI here.
+#   bugprone-random-generator-seed: property tests seed their generators on purpose so
+#     that a failure is reproducible; determinism is a project requirement.
+#   modernize-use-designated-initializers: the opcode table and other constexpr tables
+#     are rows of three or four positional fields; designated names would triple their
+#     width without adding information. Aggregates with non-obvious field order still
+#     use designated initializers by convention.
 Checks: >
   -*,
   bugprone-*,
   -bugprone-easily-swappable-parameters,
+  -bugprone-random-generator-seed,
   cppcoreguidelines-*,
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-pro-bounds-constant-array-index,
@@ -28,6 +35,7 @@ Checks: >
   -misc-include-cleaner,
   modernize-*,
   -modernize-use-trailing-return-type,
+  -modernize-use-designated-initializers,
   performance-*,
   readability-*,
   -readability-identifier-length,

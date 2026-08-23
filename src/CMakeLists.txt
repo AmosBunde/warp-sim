@@ -1,4 +1,4 @@
-add_library(warpsim_core STATIC version.cpp)
+add_library(warpsim_core STATIC version.cpp isa/instruction.cpp)
 add_library(warpsim::core ALIAS warpsim_core)
 
 target_include_directories(warpsim_core PUBLIC ${PROJECT_SOURCE_DIR}/include)

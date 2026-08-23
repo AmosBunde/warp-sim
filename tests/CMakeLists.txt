@@ -18,3 +18,7 @@ function(warpsim_add_test name)
 endfunction()
 
 warpsim_add_test(version_test version_test.cpp)
+warpsim_add_test(isa_instruction_test isa/instruction_test.cpp)
+warpsim_add_test(isa_spec_table_test isa/spec_table_test.cpp)
+target_compile_definitions(isa_spec_table_test
+                           PRIVATE WARPSIM_SPEC_PATH="${PROJECT_SOURCE_DIR}/docs/wisa-spec.md")
