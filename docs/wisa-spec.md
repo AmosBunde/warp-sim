@@ -257,6 +257,8 @@ Invariants of the stack:
 
 ### 8.4 Consequences that kernels can rely on
 
+- **Results do not depend on the reconvergence point.** Rules 3 and 4 together guarantee that every lane executes exactly its own path regardless of the recorded reconvergence PC: a path that never reaches its reconvergence point runs until its lanes retire, and the deferred path then resumes by rule 4. The reconvergence point determines when lanes rejoin, which is observable only through the order of side effects across lanes of one warp and through the instruction count (a common tail is issued once after a rejoin, and once per path without one). The torture suite asserts both halves of this statement.
+
 - **If and if-else** reconverge at the instruction after the joined paths.
 - **Nested branches** to any depth reconverge innermost first.
 - **Loops.** For a loop whose back edge is a guarded `bra` to the loop head, the immediate post-dominator of the branch is the loop exit, so lanes that leave the loop early are deferred until every lane of the warp has left the loop. This is the standard lockstep loop behavior.

@@ -1,0 +1,54 @@
+// Everything at once: a loop whose body contains nested divergent branches
+// and a conditional early exit; per-lane state feeds back into the branch
+// conditions so that the active mask changes shape every iteration.
+.entry combined
+.param x
+.param out
+.param n
+        mov.sreg r0, %tid.x
+        mov.sreg r1, %ctaid.x
+        mov.sreg r2, %ntid.x
+        mul r1, r1, r2
+        add r0, r0, r1              // i
+        ld.param r3, [n]
+        setp.ge.s32 p0, r0, r3
+    @p0 bra done
+        shl r4, r0, 2
+        ld.param r5, [x]
+        add r5, r5, r4
+        ld.global r6, [r5]          // state
+        mov r7, 0                   // k
+        mov r10, 0                  // acc
+top:    setp.ge.s32 p1, r7, 32
+    @p1 bra finish
+        and r8, r6, 1
+        setp.eq.s32 p2, r8, 0
+    @p2 bra even
+        // odd: state = 3 * state + 1 (wrapping), acc += k
+        mul r6, r6, 3
+        add r6, r6, 1
+        add r10, r10, r7
+        and r8, r6, 2
+        setp.eq.s32 p3, r8, 0
+    @p3 bra step
+        // odd and bit 1 set: nested level 2
+        xor r10, r10, r6
+        and r8, r6, 4
+        setp.eq.s32 p4, r8, 0
+    @p4 bra step
+        // nested level 3
+        sub r10, r10, 5
+        bra step
+even:   // state = state / 2, acc += state, early exit when state becomes 0
+        sra r6, r6, 1
+        add r10, r10, r6
+        setp.eq.s32 p5, r6, 0
+    @p5 bra finish
+step:   add r7, r7, 1
+        bra top
+finish:
+        ld.param r9, [out]
+        add r9, r9, r4
+        st.global [r9], r10
+done:
+        exit
