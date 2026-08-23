@@ -5,20 +5,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-import warpsim
-from warpsim import golden
-from warpsim.harness import Output, launch
+from warpsim import golden, kernels
 
 SEEDS = range(100)
 TILE = 16
 
 
-def run_naive(a, b):
-    m, k = a.shape
-    _, n = b.shape
-    program = warpsim.assemble_file(warpsim.kernels_dir() / "matmul_naive.wisa")
-    grid = ((n + TILE - 1) // TILE, (m + TILE - 1) // TILE)
-    return launch(program, grid, (TILE, TILE), [a, b, Output(m * n, "float32"), m, n, k])
+run_naive = kernels.run_matmul_naive
 
 
 @pytest.mark.parametrize("seed", SEEDS)

@@ -4,11 +4,15 @@ PRESET  ?= release
 BUILD    = build/$(PRESET)
 PYTEST   = PYTHONPATH=python $(PYTHON) -m pytest python/tests
 
-.PHONY: quickstart configure build test test-cpp test-py bench lint sanitize clean
+.PHONY: quickstart configure build test test-cpp test-py report bench lint sanitize clean
 
 quickstart: build test-cpp test-py
 	@echo "warpsim $$(PYTHONPATH=python $(PYTHON) -c 'import warpsim; print(warpsim.version())'): build ok, C++ tests ok, Python tests ok"
-	@echo "Kernel reports arrive with milestone M4; the tiled matmul report is printed here from M5 onward."
+	@echo "Tiled matmul report (real run):"
+	@PYTHONPATH=python $(PYTHON) -m warpsim.report --kernel matmul_tiled
+
+report: build
+	PYTHONPATH=python $(PYTHON) -m warpsim.report
 
 configure:
 	cmake --preset $(PRESET)
