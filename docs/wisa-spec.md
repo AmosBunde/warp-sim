@@ -263,6 +263,8 @@ Invariants that the core asserts in debug builds:
 - **Early exit from a loop** through a guarded `bra` to a label after the loop reconverges at that label's block, after every other lane has finished the loop.
 - **`exit` inside divergent code** retires its lanes immediately; the remaining lanes continue and the deferred path resumes by rule 4 if the active mask becomes empty.
 - **Paths that never rejoin.** If both paths of a branch end in `exit` without a common successor, the reconvergence PC is `0xFFFF`, and the deferred path resumes by rule 4 once the taken path has retired.
+- **A guarded `exit` on one path.** Because `exit` has an edge to the virtual exit node, a block after a guarded `exit` does not post-dominate the branch that led there, even if every surviving lane reaches it. The branch carries `0xFFFF` and the deferred path resumes by rule 4. Kernels that want early reconvergence should branch around the tail rather than retire lanes inside it.
+- **Loops with an early exit.** The block after a loop's back edge is bypassed by the early exit path, so the back edge reconverges at the early exit target, which is the first block every loop-leaving lane reaches.
 
 ### 8.5 Worked example
 

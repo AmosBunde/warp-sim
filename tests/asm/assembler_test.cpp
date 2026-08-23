@@ -85,7 +85,7 @@ TEST(Assembler, BranchesExampleCoversEveryOperandForm) {
     EXPECT_EQ(std::bit_cast<float>(ins[3].imm), 1.5F);
     EXPECT_EQ(std::bit_cast<float>(ins[4].imm), -25.0F);
     EXPECT_EQ(ins[6].branch_target(), 9U);
-    EXPECT_EQ(ins[6].reconvergence_pc(), warpsim::isa::no_reconvergence);
+    EXPECT_EQ(ins[6].reconvergence_pc(), 10U); // join
     EXPECT_FALSE(ins[8].guard.present);
     EXPECT_EQ(ins[8].branch_target(), 10U);
     EXPECT_EQ(ins[11].opcode, Opcode::StShared);

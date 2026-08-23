@@ -27,3 +27,5 @@ target_include_directories(asm_lexer_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 warpsim_add_test(asm_assembler_test asm/assembler_test.cpp)
 target_compile_definitions(asm_assembler_test
                            PRIVATE WARPSIM_KERNELS_DIR="${PROJECT_SOURCE_DIR}/kernels")
+warpsim_add_test(asm_reconvergence_test asm/reconvergence_test.cpp)
+target_include_directories(asm_reconvergence_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
