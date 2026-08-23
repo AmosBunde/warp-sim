@@ -99,27 +99,32 @@ Branch prefixes follow the type label: `feat/`, `test/`, `docs/`, `chore/`.
 
 ## M2 Execution core (`area:core`)
 
-### P11 Register file and thread and warp state (`type:feature`)
+### P11 (#26) Register file and thread and warp state (`type:feature`)
 - **Problem.** Lanes need storage.
 - **Design.** `RegisterFile` with 64 general and 8 predicate registers per lane, 32 lanes per warp, `std::array` storage, bounds-checked accessors. `WarpState` with PC, active mask, and divergence stack storage.
 - **Acceptance.** Unit tests on read and write, lane isolation, and mask typing.
 
-### P12 ALU, predication, special registers (`type:feature`)
+### P12 (#27) ALU, predication, special registers (`type:feature`)
 - **Problem.** Instructions need semantics.
 - **Design.** `execute(Instruction, WarpState, ...)` for arithmetic, logic, float, conversion, compare, and move instructions; predicate guards applied per lane; special registers read from launch context. Integer overflow is defined as wraparound; division by zero produces zero and sets no trap, as documented in the specification.
 - **Acceptance.** Per-instruction unit tests including edge values; UBSan clean.
 
-### P13 Active-mask divergence stack with reconvergence (`type:feature`)
+### P13 (#28) Active-mask divergence stack with reconvergence (`type:feature`)
 - **Problem.** Divergent branches must execute both paths and rejoin correctly.
 - **Design.** On a divergent `bra`, push the reconvergence PC and the fall-through mask, continue with the taken mask; at the reconvergence PC, pop and run the deferred path; when both paths have arrived, merge. Documented invariants: stack entries are ordered by nesting, a lane is active in at most one pending entry, and `exit` removes a lane from every pending mask.
 - **Acceptance.** Unit tests for if, if-else, nested depth 3, loops with divergent exits, and `exit` inside divergent code.
 
-### P14 Warp scheduler and launch (`type:feature`)
+### P14 (#29) Warp scheduler, launch, barrier, and minimal memory (`type:feature`)
 - **Problem.** A grid must be executed.
 - **Design.** `Device::launch(program, grid, block, params)`: blocks executed in order, warps of a block under round-robin selection, each warp issuing one instruction per scheduling step. Deterministic ordering.
 - **Acceptance.** A multi-block kernel writes every element; two runs produce identical results.
 
-### P15 Divergence-torture kernels (`type:test`)
+### P14b (#30) Python bindings for assemble, Device, and launch (`type:feature`)
+- **Problem.** Torture kernels and all later kernels are checked from Python.
+- **Design.** `assemble`, `Program`, `Device` with `write`, `read`, `launch`; faults raise `SimFault`.
+- **Acceptance.** pytest runs vecadd through the bindings and matches NumPy.
+
+### P15 (#31) Divergence-torture kernels (`type:test`)
 - **Problem.** Divergence correctness must be proven on data-dependent control flow.
 - **Design.** Kernels under `kernels/torture/` with nesting to depth 3, data-dependent branches, loops with divergent trip counts, and early `exit`. NumPy golden models. Randomized inputs in CI.
 - **Acceptance.** Every torture kernel matches the golden model bit for bit across 100 seeds.

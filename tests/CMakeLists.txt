@@ -34,3 +34,4 @@ warpsim_add_test(asm_roundtrip_test asm/roundtrip_test.cpp)
 target_include_directories(asm_roundtrip_test PRIVATE ${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(asm_roundtrip_test
                            PRIVATE WARPSIM_KERNELS_DIR="${PROJECT_SOURCE_DIR}/kernels")
+warpsim_add_test(core_register_file_test core/register_file_test.cpp)
