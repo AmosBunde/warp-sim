@@ -1,0 +1,21 @@
+# CMake build trees
+build/
+build-*/
+CMakeUserPresets.json
+
+# Python
+__pycache__/
+*.pyc
+*.so
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local tooling
+.claude/settings.local.json
