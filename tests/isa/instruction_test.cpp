@@ -6,6 +6,8 @@
 
 #include <gtest/gtest.h>
 
+#include "support/random_instruction.hpp"
+
 namespace {
 
 using warpsim::isa::decode;
@@ -14,90 +16,7 @@ using warpsim::isa::Instruction;
 using warpsim::isa::IsaError;
 using warpsim::isa::Opcode;
 using warpsim::isa::opcode_table;
-using warpsim::isa::Shape;
 using warpsim::isa::validate;
-
-// Produces a valid random instruction for the given opcode, so that the round
-// trip is exercised over the whole legal operand space of every shape.
-Instruction random_instruction(const warpsim::isa::OpcodeInfo& info, std::mt19937& rng) {
-    std::uniform_int_distribution<int> reg(0, 63);
-    std::uniform_int_distribution<int> pred(0, 7);
-    std::uniform_int_distribution<int> coin(0, 1);
-    std::uniform_int_distribution<std::uint32_t> word(0, 0xFFFFFFFFU);
-    std::uniform_int_distribution<int> sreg(0, 9);
-
-    Instruction i;
-    i.opcode = info.opcode;
-    if (coin(rng) == 1) {
-        i.guard.present = true;
-        i.guard.negate = coin(rng) == 1;
-        i.guard.pred = static_cast<std::uint8_t>(pred(rng));
-    }
-    const bool use_imm = coin(rng) == 1;
-    switch (info.shape) {
-    case Shape::Rrr:
-        i.dst = static_cast<std::uint8_t>(reg(rng));
-        i.src0 = static_cast<std::uint8_t>(reg(rng));
-        if (use_imm) {
-            i.imm_flag = true;
-            i.imm = word(rng);
-        } else {
-            i.src1 = static_cast<std::uint8_t>(reg(rng));
-        }
-        break;
-    case Shape::Prr:
-        i.dst = static_cast<std::uint8_t>(pred(rng));
-        i.src0 = static_cast<std::uint8_t>(reg(rng));
-        if (use_imm) {
-            i.imm_flag = true;
-            i.imm = word(rng);
-        } else {
-            i.src1 = static_cast<std::uint8_t>(reg(rng));
-        }
-        break;
-    case Shape::Rr:
-        i.dst = static_cast<std::uint8_t>(reg(rng));
-        if (use_imm) {
-            i.imm_flag = true;
-            i.imm = word(rng);
-        } else {
-            i.src0 = static_cast<std::uint8_t>(reg(rng));
-        }
-        break;
-    case Shape::Acc:
-        i.dst = static_cast<std::uint8_t>(reg(rng));
-        i.src0 = static_cast<std::uint8_t>(reg(rng));
-        i.src1 = static_cast<std::uint8_t>(reg(rng));
-        break;
-    case Shape::Sreg:
-        i.dst = static_cast<std::uint8_t>(reg(rng));
-        i.src0 = static_cast<std::uint8_t>(sreg(rng));
-        break;
-    case Shape::Bra:
-        i.imm = word(rng);
-        break;
-    case Shape::None:
-        break;
-    case Shape::Ld:
-        i.dst = static_cast<std::uint8_t>(reg(rng));
-        i.src0 = static_cast<std::uint8_t>(reg(rng));
-        i.imm_flag = true;
-        i.imm = word(rng);
-        break;
-    case Shape::St:
-        i.src0 = static_cast<std::uint8_t>(reg(rng));
-        i.src1 = static_cast<std::uint8_t>(reg(rng));
-        i.imm_flag = true;
-        i.imm = word(rng);
-        break;
-    case Shape::Ldp:
-        i.dst = static_cast<std::uint8_t>(reg(rng));
-        i.imm_flag = true;
-        i.imm = word(rng);
-        break;
-    }
-    return i;
-}
 
 TEST(Encoding, WorkedExampleFromSpecification) {
     // `@p1 add r3, r4, 7` from docs/wisa-spec.md section 3.1.
@@ -151,7 +70,7 @@ TEST(Encoding, RoundTripEveryOpcode) {
     std::mt19937 rng(0x5EED);
     for (const auto& info : opcode_table) {
         for (int n = 0; n < 1000; ++n) {
-            const Instruction i = random_instruction(info, rng);
+            const Instruction i = warpsim::testing::random_instruction(info, rng);
             const auto word = encode(i);
             ASSERT_TRUE(word.has_value()) << info.mnemonic << ": " << to_string(word.error());
             const auto back = decode(*word);
