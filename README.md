@@ -13,47 +13,31 @@ Everything runs on the CPU. There is no GPU dependency anywhere in the project.
 
 ## Architecture
 
-The canonical diagram is `docs/architecture.html`. The summary below is its GitHub-renderable form.
+The canonical diagram is `docs/architecture.html`, an interactive standalone page generated from `docs/diagram/architecture.archify.json` (dark theme, JetBrains Mono, a boundary around the differential harness, legend outside all boundaries). The summary below is its GitHub-renderable form and names the same twelve components.
 
 ```mermaid
 flowchart LR
-    subgraph Tooling
-        SRC[WISA source .wisa] --> ASM[Assembler]
-        ASM --> PROG[Program: encoded instructions + reconvergence table]
-        PROG --> DIS[Disassembler]
-        DIS --> SRC
+    subgraph Tooling[WISA tooling]
+        SRC[WISA source] -->|text| ASM[Assembler: lexer, parser, post-dominators]
+        ASM -->|encode| PROG[(Program: 64-bit words, labels)]
+        PROG -.->|decode| DIS[Disassembler]
+        DIS -.->|round trip| SRC
     end
 
-    subgraph Core[SIMT core]
-        SCHED[Warp scheduler] --> WARP[Warp: PC, active mask, divergence stack]
-        WARP --> RF[Register file: r0..r63, p0..p7 per lane]
-        WARP --> ALU[ALU and predication]
-        WARP --> LSU[Load store unit]
-    end
-
-    subgraph Memory[Memory system]
-        LSU --> GMEM[Global memory + coalescing analyzer]
-        LSU --> SMEM[Shared memory + bank conflict counter]
-        WARP --> BAR[Block barrier]
-    end
-
-    subgraph Instr[Instrumentation]
-        CNT[Counters and divergence statistics]
-        TIME[Coarse timing model, ordinal only]
-        CNT --> TIME
+    subgraph Core[SIMT core and memory system]
+        SCHED[Warp scheduler] -->|issue| WARP[Warp: mask stack, registers, ALU]
+        WARP -->|ld/st.global| GMEM[(Global memory: coalescing analyzer)]
+        WARP -->|ld/st.shared| SMEM[(Shared memory: bank conflict counter)]
+        WARP -->|events| INSTR[Instrumentation: counters, ordinal timing]
     end
 
     subgraph Harness[Differential harness, Python]
-        PY[pybind11 module warpsim] --> TEST[pytest randomized suite]
-        GOLD[NumPy golden models] --> TEST
-        TEST --> REPORT[Kernel reports]
+        PY[pybind11 module warpsim._core] -->|outputs| TEST[Differential suite: pytest, seeded, in CI]
+        GOLD[NumPy golden models] -->|expected| TEST
     end
 
-    PROG --> SCHED
-    Core --> CNT
-    Memory --> CNT
-    TIME --> PY
-    SCHED --> PY
+    PROG -->|launch| SCHED
+    INSTR -->|counters| PY
 ```
 
 ## Components
@@ -75,7 +59,7 @@ flowchart LR
 The full specification is `docs/wisa-spec.md` and is versioned with the code: any instruction added, removed, or changed updates the specification in the same pull request, and the assembler and disassembler round-trip test covers every instruction listed there. In summary:
 
 - 32 lanes per warp; each lane owns 64 general registers `r0..r63` of 32 bits and 8 predicate registers `p0..p7`.
-- Integer arithmetic and logic, IEEE single-precision floating point, conversions, comparisons into predicates, predicated execution via `@p` and `@!p` prefixes on any instruction.
+- Forty-six instructions (version 0.1): integer arithmetic and logic, IEEE single-precision floating point with a fused multiply-add, conversions, twelve `setp` comparisons into predicates, and predicated execution via `@p` and `@!p` prefixes on any instruction.
 - Control flow: `bra` carries both its target and an assembler-computed reconvergence point (the immediate post-dominator of the branch). `exit` retires a lane. `bar.sync` synchronizes a block.
 - Memory: `ld.global`, `st.global`, `ld.shared`, `st.shared`, and `ld.param` with register plus immediate addressing on 32-bit words.
 - Special registers: `%tid.x`, `%tid.y`, `%ntid.x`, `%ntid.y`, `%ctaid.x`, `%ctaid.y`, `%nctaid.x`, `%nctaid.y`, `%laneid`, `%warpid`.
