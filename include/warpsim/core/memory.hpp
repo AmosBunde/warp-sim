@@ -1,6 +1,8 @@
 #pragma once
 
+#include "warpsim/core/memory_analysis.hpp"
 #include "warpsim/core/memory_port.hpp"
+#include "warpsim/core/memory_stats.hpp"
 #include "warpsim/result.hpp"
 
 #include <cstddef>
@@ -45,12 +47,18 @@ public:
     [[nodiscard]] Result<void, AccessFault> store(Space space, std::uint32_t address,
                                                   std::uint32_t value, unsigned lane) override;
 
+    void on_warp_access(Space space, bool is_store,
+                        std::span<const std::uint32_t, warp_size> addresses,
+                        LaneMask exec) override;
+
     [[nodiscard]] ByteMemory& shared() noexcept { return shared_; }
+    [[nodiscard]] const MemoryStats& stats() const noexcept { return analyzer_.stats(); }
 
 private:
     ByteMemory* global_; ///< non-owning; the device outlives every block
     ByteMemory shared_;
     std::span<const std::uint32_t> params_;
+    MemoryAnalyzer analyzer_;
 };
 
 } // namespace warpsim::core

@@ -48,6 +48,7 @@ Special registers are read with `mov.sreg` and are never written.
 ### 2.5 Memory spaces
 
 - **Global memory** is one flat byte-addressed space shared by every block of a launch. The host allocates buffers within it and passes their byte offsets as parameters. Reads and writes are 32-bit words at 4-byte aligned addresses. An access that is misaligned or outside the allocated size is a simulator fault that stops the launch and reports the lane, the PC, and the address.
+- **Coalescing observable.** For one warp-level `ld.global` or `st.global`, the simulator maps each executing lane's byte address to a 128-byte segment (`address / 128`) and counts the distinct segments. The per-launch counter `global_segments` is the sum over instructions; a fully coalesced 32-word access contributes 1, a 32-word stride contributes 32. This is a count, not a time.
 - **Shared memory** is one byte-addressed space per block, sized by the `.shared` directive, zero-initialized at block start, and discarded at block end. The same alignment and bounds rules apply.
 - **Parameter memory** is a read-only table of 32-bit words per launch, indexed by parameter ordinal. A buffer parameter holds the byte offset of the buffer in global memory. A scalar parameter holds its value.
 

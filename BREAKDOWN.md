@@ -131,22 +131,22 @@ Branch prefixes follow the type label: `feat/`, `test/`, `docs/`, `chore/`.
 
 ## M3 Memory system (`area:memory`)
 
-### P16 Global memory with coalescing analyzer (`type:feature`)
+### P16 (#38) Global memory with coalescing analyzer (`type:feature`)
 - **Problem.** Kernels need global loads and stores, and the access pattern must be observable.
 - **Design.** Byte-addressed `GlobalMemory` with bounds checking. Per warp memory instruction the analyzer counts distinct 128-byte segments touched by the active lanes. Counters for segments and transactions.
 - **Acceptance.** Unit tests: contiguous access touches 1 segment per 32 words, stride 2 touches 2, stride 32 words touches 32; out-of-bounds access raises a simulator fault with the lane and address.
 
-### P17 Shared memory with bank-conflict counter (`type:feature`)
+### P17 (#39) Shared memory with bank-conflict counter (`type:feature`)
 - **Problem.** Tiled kernels depend on shared memory and its conflict behavior.
 - **Design.** Per block `SharedMemory`, 32 banks of 4 bytes. For each warp access, conflict degree is the maximum over banks of the number of distinct addresses mapped to that bank; identical addresses broadcast. Counters for accesses and conflicting accesses.
 - **Acceptance.** Unit tests: stride 1 degree 1, stride 2 degree 2, stride 32 degree 32, broadcast degree 1.
 
-### P18 Block barrier (`type:feature`)
+### P18 Block barrier (delivered in #29 with the scheduler, no separate issue)
 - **Problem.** Shared-memory kernels need `bar.sync`.
 - **Design.** A warp arriving at `bar.sync` parks until all warps of the block arrive; the scheduler skips parked warps. A barrier inside divergent code is a specification-defined fault.
 - **Acceptance.** Producer and consumer test across warps; deadlock is detected and reported when a warp exits before a barrier it would have been counted in.
 
-### P19 Memory-pattern kernels (`type:test`)
+### P19 (#40) Memory-pattern kernels (`type:test`)
 - **Problem.** The analyzers need end-to-end confirmation.
 - **Design.** Kernels under `kernels/patterns/` for coalesced, strided, and transposed access, and for conflict-free and conflicting shared access, with expected counter values.
 - **Acceptance.** Counter expectations hold exactly in CI.

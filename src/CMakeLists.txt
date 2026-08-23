@@ -1,4 +1,4 @@
-add_library(warpsim_core STATIC version.cpp isa/instruction.cpp asm/lexer.cpp asm/assembler.cpp asm/reconvergence.cpp asm/disassembler.cpp core/alu.cpp core/warp.cpp core/memory.cpp core/device.cpp)
+add_library(warpsim_core STATIC version.cpp isa/instruction.cpp asm/lexer.cpp asm/assembler.cpp asm/reconvergence.cpp asm/disassembler.cpp core/alu.cpp core/warp.cpp core/memory.cpp core/device.cpp core/memory_analysis.cpp)
 target_include_directories(warpsim_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_library(warpsim::core ALIAS warpsim_core)
 

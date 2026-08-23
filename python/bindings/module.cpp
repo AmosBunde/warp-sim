@@ -63,6 +63,10 @@ py::dict stats_to_dict(const LaunchStats& s) {
     d["barriers_completed"] = s.barriers_completed;
     d["blocks_executed"] = s.blocks_executed;
     d["warps_launched"] = s.warps_launched;
+    d["global_loads"] = s.memory.global_loads;
+    d["global_stores"] = s.memory.global_stores;
+    d["global_lane_accesses"] = s.memory.global_lane_accesses;
+    d["global_segments"] = s.memory.global_segments;
     return d;
 }
 
