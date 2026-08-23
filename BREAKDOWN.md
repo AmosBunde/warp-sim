@@ -72,10 +72,20 @@ Branch prefixes follow the type label: `feat/`, `test/`, `docs/`, `chore/`.
 - **Design.** `Opcode` enum, `Instruction` struct with `encode()` and `decode()`, bit layout exactly as specified. Unit tests on field boundaries and on every opcode.
 - **Acceptance.** `decode(encode(i)) == i` for every opcode and random field values; invalid opcodes decode to an error, never undefined behavior.
 
+### P8a (#20) Assembler lexer (`type:feature`)
+- **Problem.** The lexer is a self-contained module and is split from the parser to keep pull requests reviewable.
+- **Design.** `lex(std::string_view)` producing tokens with one-based positions; comments dropped; every error message tested.
+- **Acceptance.** Unit tests cover every token kind, positions, and every error.
+
 ### P8 (#14) Assembler (`type:feature`)
 - **Problem.** Kernels are written as text.
 - **Design.** Lexer, parser, symbol table, two-pass label resolution, predicate guards, directives, and a control-flow graph from which the immediate post-dominator of every conditional branch is computed and recorded as the reconvergence point. Errors carry line and column.
 - **Acceptance.** Each shipped kernel and each torture kernel assembles; error tests cover undefined labels, bad operands, and unknown mnemonics.
+
+### P8b (#19) Reconvergence analysis (`type:feature`)
+- **Problem.** The post-dominator pass is a separate module from the assembler front end and is split out to keep pull requests reviewable.
+- **Design.** `annotate_reconvergence(std::span<Instruction>)`: basic blocks, virtual exit node, post-dominators by iterative dataflow, immediate post-dominator written into every guarded `bra`.
+- **Acceptance.** Unit tests reproduce the reconvergence PCs for if, if-else, nested depth 3, loops, early exit, `exit` in divergent code, and the specification worked example.
 
 ### P9 (#15) Disassembler and round-trip property tests (`type:test`)
 - **Problem.** Without a disassembler, encodings are opaque and the specification cannot be checked against the assembler.
