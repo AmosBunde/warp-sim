@@ -1,0 +1,25 @@
+// One block of 32 x 32 lanes transposes a 32 x 32 tile through shared
+// memory without padding: rows are written coalesced, columns are read
+// with a stride of 32 words, which is the textbook bank-conflict case.
+.entry transpose
+.param in
+.param out
+.shared 4096
+        mov.sreg r0, %tid.x         // column
+        mov.sreg r1, %tid.y         // row
+        shl r2, r1, 5
+        add r2, r2, r0              // row * 32 + col
+        shl r3, r2, 2               // byte offset of in[row][col]
+        ld.param r4, [in]
+        add r4, r4, r3
+        ld.global r5, [r4]
+        st.shared [r3], r5          // tile[row][col], coalesced
+        bar.sync
+        shl r6, r0, 5
+        add r6, r6, r1              // col * 32 + row
+        shl r7, r6, 2
+        ld.shared r8, [r7]          // tile[col][row], stride 32 words across the warp
+        ld.param r9, [out]
+        add r9, r9, r3
+        st.global [r9], r8          // out[row][col] = tile[col][row]
+        exit

@@ -1,0 +1,18 @@
+// One warp: lane 0 writes shared word 0, barrier, every lane reads word 0.
+.entry broadcast
+.param out
+.shared 128
+        mov.sreg r0, %laneid
+        setp.eq.s32 p0, r0, 0
+        mov r1, 0
+    @!p0 bra skip
+        mov r2, 42
+        st.shared [r1], r2
+skip:
+        bar.sync
+        ld.shared r3, [r1]
+        shl r4, r0, 2
+        ld.param r5, [out]
+        add r5, r5, r4
+        st.global [r5], r3
+        exit
