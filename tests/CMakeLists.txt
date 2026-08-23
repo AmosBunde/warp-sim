@@ -41,3 +41,4 @@ target_include_directories(core_divergence_test PRIVATE ${CMAKE_CURRENT_SOURCE_D
 warpsim_add_test(core_device_test core/device_test.cpp)
 target_compile_definitions(core_device_test PRIVATE WARPSIM_KERNELS_DIR="${PROJECT_SOURCE_DIR}/kernels")
 warpsim_add_test(core_coalescing_test core/coalescing_test.cpp)
+warpsim_add_test(core_bank_conflict_test core/bank_conflict_test.cpp)
