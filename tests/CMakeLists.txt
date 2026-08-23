@@ -36,3 +36,5 @@ target_compile_definitions(asm_roundtrip_test
                            PRIVATE WARPSIM_KERNELS_DIR="${PROJECT_SOURCE_DIR}/kernels")
 warpsim_add_test(core_register_file_test core/register_file_test.cpp)
 warpsim_add_test(core_alu_test core/alu_test.cpp)
+warpsim_add_test(core_divergence_test core/divergence_test.cpp)
+target_include_directories(core_divergence_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
