@@ -19,6 +19,7 @@ endfunction()
 
 warpsim_add_test(version_test version_test.cpp)
 warpsim_add_test(isa_instruction_test isa/instruction_test.cpp)
+target_include_directories(isa_instruction_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 warpsim_add_test(isa_spec_table_test isa/spec_table_test.cpp)
 target_compile_definitions(isa_spec_table_test
                            PRIVATE WARPSIM_SPEC_PATH="${PROJECT_SOURCE_DIR}/docs/wisa-spec.md")
@@ -29,3 +30,7 @@ target_compile_definitions(asm_assembler_test
                            PRIVATE WARPSIM_KERNELS_DIR="${PROJECT_SOURCE_DIR}/kernels")
 warpsim_add_test(asm_reconvergence_test asm/reconvergence_test.cpp)
 target_include_directories(asm_reconvergence_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
+warpsim_add_test(asm_roundtrip_test asm/roundtrip_test.cpp)
+target_include_directories(asm_roundtrip_test PRIVATE ${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(asm_roundtrip_test
+                           PRIVATE WARPSIM_KERNELS_DIR="${PROJECT_SOURCE_DIR}/kernels")
