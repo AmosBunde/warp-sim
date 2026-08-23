@@ -180,22 +180,22 @@ Branch prefixes follow the type label: `feat/`, `test/`, `docs/`, `chore/`.
 
 ## M5 Instrumentation, timing, report (`area:instrumentation`)
 
-### P25 Counters, divergence statistics, occupancy (`type:feature`)
+### P25 (#54) Counters, divergence statistics, occupancy (`type:feature`)
 - **Problem.** The mechanisms need consistent, named observables.
 - **Design.** `Counters` struct: instructions issued, per-class counts, divergent branches, reconvergence events, average active lanes, global segments, shared conflicts, barriers; occupancy as warps resident per block and lanes active per issue.
 - **Acceptance.** Every counter is documented; the reduction kernel reports a halving active-lane series.
 
-### P26 Coarse timing model with ordinal acceptance test (`type:feature`)
+### P26 (#55) Coarse timing model with ordinal acceptance test (`type:feature`)
 - **Problem.** Counters need to compose into a comparison that is ordinal only.
 - **Design.** Cost units: 1 per issued instruction, plus per global segment, plus per shared conflict degree, plus serialized divergent paths. Documented as ordinal. `python/tests/test_timing_ordinal.py` asserts tiled ranks above naive and that the attribution (segments, conflicts, divergence) explains the gap.
 - **Acceptance.** Ordinal test passes; no text anywhere implies cycle accuracy.
 
-### P27 Determinism test and `make bench` (`type:test`)
+### P27 (#56) Determinism test and `make bench` (`type:test`)
 - **Problem.** Reproducibility must be demonstrated, not asserted.
 - **Design.** `python/tests/test_determinism.py` runs each kernel twice and compares outputs and counters; `make bench` runs naive against tiled and prints the attribution.
 - **Acceptance.** Test in CI; `make bench` output is stable across runs.
 
-### P28 Final writeup and README results (`type:docs`)
+### P28 (#57) Final writeup and README results (`type:docs`)
 - **Problem.** The project needs a narrative that connects every statistic to a mechanism.
 - **Design.** `docs/report.md` with the kernel table, the ordinal ranking, and an explanation of each counter; README results table filled from `make bench`.
 - **Acceptance.** Every number is reproducible by stated commands; no placeholder, contraction, or em dash remains anywhere in the repository.

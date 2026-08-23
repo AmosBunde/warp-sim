@@ -39,6 +39,10 @@ public:
 
     /// Divergence events so far: branches that split the active mask.
     [[nodiscard]] std::uint64_t divergent_branches() const noexcept { return divergent_; }
+    /// Rule 3 pops so far: arrivals at a reconvergence point.
+    [[nodiscard]] std::uint64_t reconvergence_events() const noexcept { return reconverged_; }
+    /// Class of the most recently issued instruction.
+    [[nodiscard]] isa::Opcode last_opcode() const noexcept { return last_opcode_; }
 
 private:
     /// Rules 3 and 4: pops entries until the warp has a non-empty active mask
@@ -56,6 +60,8 @@ private:
     LaneContext context_;
     LaneMask last_exec_ = 0;
     std::uint64_t divergent_ = 0;
+    std::uint64_t reconverged_ = 0;
+    isa::Opcode last_opcode_ = isa::Opcode::Exit;
 };
 
 } // namespace warpsim::core
