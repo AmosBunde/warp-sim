@@ -1,4 +1,4 @@
-add_library(warpsim_core STATIC version.cpp isa/instruction.cpp asm/lexer.cpp)
+add_library(warpsim_core STATIC version.cpp isa/instruction.cpp asm/lexer.cpp asm/assembler.cpp)
 target_include_directories(warpsim_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_library(warpsim::core ALIAS warpsim_core)
 

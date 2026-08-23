@@ -215,7 +215,7 @@ Rules:
 - Tokens are case sensitive. Mnemonics and directives are lower case.
 - A label is an identifier followed by `:` on its own line or preceding an instruction. Labels are unique within a program.
 - Registers are `r0` through `r63`; predicates are `p0` through `p7`; special registers are the names in section 2.4.
-- Integer immediates are decimal (optionally negative) or hexadecimal with `0x`. They must fit in 32 bits as a signed or unsigned value. Float immediates contain a `.` or an exponent, for example `1.0`, `-2.5e3`, and are encoded as binary32 bits. An instruction whose immediate-capable operand is an `f32` operand accepts either form; the assembler does not convert between them.
+- Integer immediates are decimal (optionally negative) or hexadecimal with `0x`. They must fit in 32 bits as a signed or unsigned value. Float immediates contain a `.` or an exponent, for example `1.0`, `-2.5e3`, and are encoded as binary32 bits. An instruction whose immediate-capable operand is an `f32` or `b32` operand (`fadd`, `fsub`, `fmul`, `fmin`, `fmax`, `fneg`, `cvt.s32.f32`, `setp.*.f32`, and `mov`) accepts either form; every other instruction accepts only integer immediates. The assembler never converts between the two forms: `mov r1, 1.0` loads the bit pattern `0x3F800000`.
 - Address operands are `[ra+off]` or `[ra-off]` or `[ra]`, with `off` an integer immediate. Whitespace inside the brackets is permitted.
 - Parameter operands of `ld.param` are `[name]` where `name` is a declared parameter.
 - The `bra` target is a label. Branch targets are resolved in a second pass, so forward references are permitted.

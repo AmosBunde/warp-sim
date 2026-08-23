@@ -1,0 +1,27 @@
+// Exercises every operand form: guards, negative immediates, float
+// immediates, address offsets, forward and backward labels, shared memory.
+.entry branches
+.param out
+.shared 128
+
+        mov.sreg r0, %laneid
+        mov     r1, -5
+        mov     r2, 0x7FFFFFFF
+        mov     r3, 1.5
+        fadd    r3, r3, -2.5e1
+        setp.lt.s32 p1, r0, 16
+   @p1  bra then
+        mov     r2, 10
+        bra join
+then:   mov     r2, 20
+join:   add     r2, r2, 1
+        st.shared [r0+64], r2
+        ld.shared r4, [r0-0]
+        mov     r5, 0
+loop:   add     r5, r5, 1
+        setp.lt.s32 p0, r5, r0
+   @p0  bra loop
+   @!p1 exit
+        ld.param r6, [out]
+        st.global [r6+4], r5
+        exit

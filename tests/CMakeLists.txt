@@ -24,3 +24,6 @@ target_compile_definitions(isa_spec_table_test
                            PRIVATE WARPSIM_SPEC_PATH="${PROJECT_SOURCE_DIR}/docs/wisa-spec.md")
 warpsim_add_test(asm_lexer_test asm/lexer_test.cpp)
 target_include_directories(asm_lexer_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
+warpsim_add_test(asm_assembler_test asm/assembler_test.cpp)
+target_compile_definitions(asm_assembler_test
+                           PRIVATE WARPSIM_KERNELS_DIR="${PROJECT_SOURCE_DIR}/kernels")
