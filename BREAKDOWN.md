@@ -62,27 +62,27 @@ Branch prefixes follow the type label: `feat/`, `test/`, `docs/`, `chore/`.
 
 ## M1 ISA and assembler (`area:isa`)
 
-### P6 WISA specification v0.1 (`type:docs`)
+### P6 (#12) WISA specification v0.1 (`type:docs`)
 - **Problem.** There is no authoritative instruction list, so the assembler cannot be checked.
 - **Design.** `docs/wisa-spec.md`: execution model, registers, special registers, predication, the 64-bit encoding layout, every instruction with syntax, semantics, and encoding, the reconvergence rule for `bra`, and the assembler directives (`.entry`, `.param`, `.shared`, labels).
 - **Acceptance.** Every instruction that later exists in `opcode.hpp` appears in the specification, checked by a test that parses the specification table.
 
-### P7 Instruction encoding and decoding (`type:feature`)
+### P7 (#13) Instruction encoding and decoding (`type:feature`)
 - **Problem.** Instructions need a fixed binary form that the core executes and the tools round-trip.
 - **Design.** `Opcode` enum, `Instruction` struct with `encode()` and `decode()`, bit layout exactly as specified. Unit tests on field boundaries and on every opcode.
 - **Acceptance.** `decode(encode(i)) == i` for every opcode and random field values; invalid opcodes decode to an error, never undefined behavior.
 
-### P8 Assembler (`type:feature`)
+### P8 (#14) Assembler (`type:feature`)
 - **Problem.** Kernels are written as text.
 - **Design.** Lexer, parser, symbol table, two-pass label resolution, predicate guards, directives, and a control-flow graph from which the immediate post-dominator of every conditional branch is computed and recorded as the reconvergence point. Errors carry line and column.
 - **Acceptance.** Each shipped kernel and each torture kernel assembles; error tests cover undefined labels, bad operands, and unknown mnemonics.
 
-### P9 Disassembler and round-trip property tests (`type:test`)
+### P9 (#15) Disassembler and round-trip property tests (`type:test`)
 - **Problem.** Without a disassembler, encodings are opaque and the specification cannot be checked against the assembler.
 - **Design.** Canonical text form. Property test: for every opcode and random operands, assemble, disassemble, reassemble, and compare encodings.
 - **Acceptance.** The property test enumerates the opcode table so that adding an opcode without a round-trip case fails the build.
 
-### P10 Architecture diagram and README summary (`type:docs`)
+### P10 (#16) Architecture diagram and README summary (`type:docs`)
 - **Problem.** The component boundaries need a canonical visual.
 - **Design.** `docs/architecture.html` drawn with the archify skill: dark theme, JetBrains Mono, semantic colors, a boundary box around the differential harness, legend outside all boundaries. README Mermaid kept in sync.
 - **Acceptance.** The HTML renders standalone; the README diagram lists the same components.
