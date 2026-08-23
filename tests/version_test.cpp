@@ -1,6 +1,7 @@
 #include "warpsim/version.hpp"
 
 #include <algorithm>
+
 #include <gtest/gtest.h>
 
 TEST(Version, IsSemanticVersion) {

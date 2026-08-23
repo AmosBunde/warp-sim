@@ -1,0 +1,50 @@
+---
+# Checks are enabled by family and then narrowed. Every exclusion is justified:
+#   readability-identifier-length: short names (pc, rf, i, k) are the domain vocabulary.
+#   readability-magic-numbers, cppcoreguidelines-avoid-magic-numbers: bit layouts and
+#     lane counts are defined once as named constants; tests legitimately use literals.
+#   cppcoreguidelines-pro-bounds-constant-array-index: std::array indexing with a
+#     runtime lane index is the core data path and is bounds-checked by our accessors.
+#   cppcoreguidelines-avoid-non-const-global-variables, cppcoreguidelines-owning-memory,
+#     cppcoreguidelines-avoid-do-while, modernize-use-trailing-return-type,
+#     readability-function-cognitive-complexity: GoogleTest macros trigger these.
+#   misc-non-private-member-variables-in-classes: aggregates and plain structs are
+#     used deliberately for instruction and counter records.
+#   misc-include-cleaner: header mapping for the standard library is unreliable across
+#     the GCC and Clang matrix.
+#   bugprone-easily-swappable-parameters: register-index pairs are the normal ABI here.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-avoid-do-while,
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+  -misc-include-cleaner,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  readability-*,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(include|src|tests|python)/.*\.hpp$'
+FormatStyle: file
+CheckOptions:
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.FunctionCase: lower_case
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.PrivateMemberSuffix: _
+  readability-identifier-naming.ConstexprVariableCase: lower_case
+  readability-identifier-naming.GlobalConstantCase: lower_case
+  readability-identifier-naming.EnumConstantCase: CamelCase
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
