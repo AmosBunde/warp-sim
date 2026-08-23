@@ -4,6 +4,7 @@
 #include "warpsim/core/device.hpp"
 #include "warpsim/core/fault.hpp"
 #include "warpsim/core/types.hpp"
+#include "warpsim/instr/timing.hpp"
 #include "warpsim/version.hpp"
 
 #include <cstddef>
@@ -71,6 +72,13 @@ py::dict stats_to_dict(const LaunchStats& s) {
         histogram.append(count);
     }
     d["active_lane_histogram"] = histogram;
+    const auto cost = warpsim::instr::estimate(s);
+    py::dict c;
+    c["issue"] = cost.issue;
+    c["global"] = cost.global;
+    c["shared"] = cost.shared;
+    c["total"] = cost.total;
+    d["cost"] = c;
     d["divergent_branches"] = s.divergent_branches;
     d["barriers_completed"] = s.barriers_completed;
     d["blocks_executed"] = s.blocks_executed;
@@ -149,6 +157,11 @@ PYBIND11_MODULE(_core, m) {
             },
             "Canonical text that reassembles to the same words")
         .def("__len__", [](const Program& p) { return p.words.size(); });
+
+    m.attr("COST_WEIGHTS") =
+        py::dict(py::arg("issue_slot") = warpsim::instr::CostModel{}.issue_slot,
+                 py::arg("global_segment") = warpsim::instr::CostModel{}.global_segment,
+                 py::arg("shared_wavefront") = warpsim::instr::CostModel{}.shared_wavefront);
 
     m.def(
         "assemble",
