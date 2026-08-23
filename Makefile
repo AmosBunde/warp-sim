@@ -28,9 +28,8 @@ test-cpp: build
 test-py: build
 	$(PYTEST)
 
-bench:
-	@echo "make bench becomes live in milestone M5 (naive against tiled matmul with attribution)."
-	@exit 1
+bench: build
+	PYTHONPATH=python $(PYTHON) -m warpsim.bench
 
 lint:
 	cmake --preset debug
