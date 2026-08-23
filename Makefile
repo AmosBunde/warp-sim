@@ -34,6 +34,7 @@ bench: build
 lint:
 	cmake --preset debug
 	scripts/lint.sh build/debug
+	scripts/check_prose.sh
 
 sanitize:
 	cmake --preset asan && cmake --build --preset asan && ctest --preset asan
