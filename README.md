@@ -89,7 +89,25 @@ Each kernel has a NumPy golden model in `python/warpsim/golden.py`. Integer kern
 
 ## Results
 
-The results table is produced by `make bench` from real runs of the built simulator. It is filled in by the final milestone (see `BREAKDOWN.md`, issue M5) and every number in it is reproducible by the commands stated in the pull request that filled it. Columns: kernel, problem size, global segments per warp load, shared bank conflicts, divergent branches, coarse time units, and ranking.
+Every number below is from a real run of the built simulator on this repository's `main`; `make report` reproduces the first table and `make bench` the second. Cost units are ordinal issue-slot units under the stated weights (issue slot 1, global segment 8, shared wavefront 1) and are not cycles. The full narrative connecting each column to its mechanism is `docs/report.md`.
+
+| Kernel | Problem | Golden | Instructions issued | Divergent branches | Barriers | Global segments | Shared wavefronts | Shared conflicted | Lane utilization | Cost units (ordinal) |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `vecadd` | n = 4096 | match | 2560 | 0 | 0 | 384 | 0 | 0 | 0.950 | 5632 |
+| `reduce` | n = 4096 | match | 9712 | 80 | 144 | 144 | 720 | 0 | 0.909 | 11584 |
+| `matmul_naive` | 64 x 64 x 64 | match | 78080 | 0 | 0 | 24832 | 0 | 0 | 0.892 | 276736 |
+| `matmul_tiled` | 64 x 64 x 64 | match | 85888 | 0 | 128 | 2304 | 17408 | 0 | 0.961 | 121728 |
+
+Naive against tiled matmul (`make bench`):
+
+| Cube | Naive total | Tiled total | Segments saved by tiled (x 8) | Extra issue and shared paid by tiled | Ratio |
+|---:|---:|---:|---:|---:|---:|
+| 32 | 35392 | 16032 | 22528 | 3168 | 7.11 |
+| 48 | 117648 | 52272 | 76032 | 10656 | 7.14 |
+| 64 | 276736 | 121728 | 180224 | 25216 | 7.15 |
+| 96 | 926784 | 403488 | 608256 | 84960 | 7.16 |
+
+The tiled kernel ranks first on every size, and the ranking is attributable to one observable: it touches about one tenth of the global segments, which outweighs the extra instructions, shared wavefronts, and barriers it pays. The ordinal acceptance test asserts exactly this attribution.
 
 ## Building and running
 
