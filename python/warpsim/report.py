@@ -79,13 +79,14 @@ def run_reports(names: list[str], size: int | None = None, seed: int = 0) -> lis
 def header() -> str:
     cols = " | ".join(label for _, label in COLUMNS)
     rule = "|".join("---:" for _ in COLUMNS)
-    return f"| Kernel | Problem | Golden | {cols} | Lane utilization |\n|---|---|---|{rule}|---:|"
+    return f"| Kernel | Problem | Golden | {cols} | Lane utilization | Cost units (ordinal) |\n|---|---|---|{rule}|---:|---:|"
 
 
 def row(run: KernelRun) -> str:
     values = " | ".join(str(run.result.stats[key]) for key, _ in COLUMNS)
     utilization = f"{stats.lane_utilization(run.result.stats):.3f}"
-    return f"| `{run.name}` | {run.problem} | {'match' if run.matches_golden else 'MISMATCH'} | {values} | {utilization} |"
+    cost = run.result.stats["cost"]["total"]
+    return f"| `{run.name}` | {run.problem} | {'match' if run.matches_golden else 'MISMATCH'} | {values} | {utilization} | {cost} |"
 
 
 def render(runs: list[KernelRun]) -> str:
