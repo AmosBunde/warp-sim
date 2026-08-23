@@ -1,0 +1,56 @@
+// Naive matmul: C[M][N] = A[M][K] B[K][N], float32, one lane per element.
+// Block 16 x 16; grid covers N (x) by M (y). The inner loop reads A along a
+// row (the same word for the 16 lanes of a row, broadcast) and B down a
+// column with a stride of N words across k, so each warp-level load of B
+// touches one segment per row of the warp: the uncoalesced baseline.
+.entry matmul_naive
+.param a
+.param b
+.param c
+.param m
+.param n
+.param k
+
+        mov.sreg r0, %tid.x
+        mov.sreg r1, %tid.y
+        mov.sreg r2, %ctaid.x
+        mov.sreg r3, %ctaid.y
+        shl r2, r2, 4
+        add r2, r2, r0              // col
+        shl r3, r3, 4
+        add r3, r3, r1              // row
+        ld.param r4, [m]
+        ld.param r5, [n]
+        ld.param r6, [k]
+        setp.ge.s32 p0, r3, r4
+    @p0 exit                        // row out of range
+        setp.ge.s32 p1, r2, r5
+    @p1 exit                        // col out of range
+        mul r7, r3, r6
+        shl r7, r7, 2
+        ld.param r8, [a]
+        add r7, r7, r8              // &A[row][0]
+        shl r9, r2, 2
+        ld.param r10, [b]
+        add r9, r9, r10             // &B[0][col]
+        shl r11, r5, 2              // row stride of B in bytes
+        mov r12, 0.0                // acc
+        mov r13, 0                  // kk
+loop:
+        setp.ge.s32 p2, r13, r6
+    @p2 bra done
+        ld.global r14, [r7]         // A[row][kk]
+        ld.global r15, [r9]         // B[kk][col]
+        ffma r12, r14, r15          // acc = a * b + acc
+        add r7, r7, 4
+        add r9, r9, r11
+        add r13, r13, 1
+        bra loop
+done:
+        mul r16, r3, r5
+        add r16, r16, r2
+        shl r16, r16, 2
+        ld.param r17, [c]
+        add r16, r16, r17
+        st.global [r16], r12
+        exit

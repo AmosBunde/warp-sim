@@ -41,6 +41,27 @@ def reduce_blocks(x: np.ndarray) -> np.ndarray:
     return _wrap(padded.reshape(blocks, REDUCE_BLOCK).sum(axis=1))
 
 
+def matmul(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Golden model for both matmul kernels: the product in float64.
+
+    The kernels accumulate in binary32 with fused multiply-add in k order;
+    the float64 product is the reference both are compared against with the
+    tolerance stated in ``matmul_tolerance``.
+    """
+    return a.astype(np.float64) @ b.astype(np.float64)
+
+
+def matmul_tolerance(k: int) -> tuple[float, float]:
+    """(rtol, atol) for comparing a binary32 k-term fused accumulation against
+    the float64 product. Each fma contributes at most one rounding of the
+    running sum, so the absolute error grows linearly in k times the unit
+    roundoff (2^-24) times the magnitude of the partial sums; inputs are
+    standard normal, so partial sums are of order sqrt(k). The constants
+    below bound that with a margin of about 4x and were not widened after
+    any observed disagreement."""
+    return 1e-5, 4.0 * k * 2.0**-24 * max(1.0, k**0.5)
+
+
 def torture_nested(x: np.ndarray) -> np.ndarray:
     """Golden model of kernels/torture/nested.wisa."""
     x = x.astype(_I32)
