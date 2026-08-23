@@ -120,6 +120,10 @@ Result<LaunchStats, Fault> Device::launch(const assembler::Program& program, Dim
             stats.memory.global_stores += m.global_stores;
             stats.memory.global_lane_accesses += m.global_lane_accesses;
             stats.memory.global_segments += m.global_segments;
+            stats.memory.shared_accesses += m.shared_accesses;
+            stats.memory.shared_lane_accesses += m.shared_lane_accesses;
+            stats.memory.shared_wavefronts += m.shared_wavefronts;
+            stats.memory.shared_conflicted_accesses += m.shared_conflicted_accesses;
         }
     }
     return stats;

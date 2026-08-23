@@ -67,6 +67,10 @@ py::dict stats_to_dict(const LaunchStats& s) {
     d["global_stores"] = s.memory.global_stores;
     d["global_lane_accesses"] = s.memory.global_lane_accesses;
     d["global_segments"] = s.memory.global_segments;
+    d["shared_accesses"] = s.memory.shared_accesses;
+    d["shared_lane_accesses"] = s.memory.shared_lane_accesses;
+    d["shared_wavefronts"] = s.memory.shared_wavefronts;
+    d["shared_conflicted_accesses"] = s.memory.shared_conflicted_accesses;
     return d;
 }
 

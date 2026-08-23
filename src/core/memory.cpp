@@ -78,6 +78,8 @@ void BlockMemory::on_warp_access(Space space, bool is_store,
                                  LaneMask exec) {
     if (space == Space::Global) {
         analyzer_.on_global(addresses, exec, is_store);
+    } else if (space == Space::Shared) {
+        analyzer_.on_shared(addresses, exec, is_store);
     }
 }
 

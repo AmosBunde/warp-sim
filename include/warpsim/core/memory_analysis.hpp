@@ -12,11 +12,15 @@ namespace warpsim::core {
 /// be tested without a device.
 [[nodiscard]] std::uint32_t distinct_segments(std::span<const std::uint32_t, warp_size> addresses,
                                               LaneMask exec) noexcept;
+[[nodiscard]] std::uint32_t
+bank_conflict_degree(std::span<const std::uint32_t, warp_size> addresses, LaneMask exec) noexcept;
 
 /// Accumulates MemoryStats from warp-level accesses.
 class MemoryAnalyzer {
 public:
     void on_global(std::span<const std::uint32_t, warp_size> addresses, LaneMask exec,
+                   bool is_store) noexcept;
+    void on_shared(std::span<const std::uint32_t, warp_size> addresses, LaneMask exec,
                    bool is_store) noexcept;
 
     [[nodiscard]] const MemoryStats& stats() const noexcept { return stats_; }
