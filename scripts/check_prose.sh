@@ -6,7 +6,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 status=0
-files=$(git ls-files '*.md' '*.wisa' '*.py' '*.cpp' '*.hpp' '*.txt' '*.yml' '*.json' 'Makefile' 'Dockerfile' | grep -v '^docs/architecture.html$')
+files=$(git ls-files '*.md' '*.wisa' '*.py' '*.cpp' '*.hpp' '*.txt' '*.yml' '*.json' 'Makefile' 'Dockerfile' )
 if echo "$files" | xargs grep -nE "—" ; then echo "check_prose: em dash found"; status=1; fi
 pattern="\b(don't|doesn't|isn't|aren't|can't|cannot't|won't|wouldn't|shouldn't|couldn't|it's|that's|there's|we're|you're|they're|I'm|I've|we've|let's|didn't|wasn't|weren't|hasn't|haven't|hadn't|what's|who's)\b"
 if echo "$files" | xargs grep -nEi "$pattern" ; then echo "check_prose: contraction found"; status=1; fi
