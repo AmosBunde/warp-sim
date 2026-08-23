@@ -98,6 +98,7 @@ Requirements: a C++20 toolchain (GCC 13 or Clang 17 or newer), CMake 3.25 or new
 ```sh
 make quickstart      # configure, build, run every test including the differential harness, print the tiled matmul report
 make test            # C++ and Python tests
+make report          # kernel report table from a real run of all four kernels
 make bench           # naive against tiled matmul, with attribution from the instrumentation
 make lint            # clang-format check and clang-tidy
 make sanitize        # ASan and UBSan builds and tests
