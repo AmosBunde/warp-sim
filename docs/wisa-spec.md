@@ -249,11 +249,11 @@ Before issuing any instruction, the warp checks the top entry of the stack:
 3. If the warp's PC equals the top entry's reconvergence PC, the entry is popped and the deferred path resumes: the warp records its current mask as the **arrived mask**, sets PC to the deferred PC, and sets its active mask to the deferred mask. When that path in turn reaches the same reconvergence PC, the arrived mask is unioned back in. Concretely the implementation pushes a second entry when switching paths, `(reconvergence PC, reconvergence PC, arrived mask)`, so that rule 3 performs the union uniformly.
 4. If the active mask becomes empty because every active lane retired through `exit`, the top entry is popped and its path resumes, regardless of PC. If the stack is empty, the warp is finished.
 
-Invariants that the core asserts in debug builds:
+Invariants of the stack:
 
-- Entries are ordered by nesting: the reconvergence PC of a newer entry is reached before or at the same instruction as the reconvergence PC of an older entry along every path.
-- A lane is present in at most one deferred mask on the stack at a time, and never in both the active mask and a deferred mask.
-- A retired lane is present in no mask.
+- Entries are ordered by nesting: the reconvergence PC of a newer entry is reached before or at the same instruction as the reconvergence PC of an older entry along every path. This follows from the post-dominator construction in the assembler and is not checked at run time.
+- A lane is present in at most one deferred mask on the stack at a time, and never in both the active mask and a deferred mask. Asserted in debug builds after every step.
+- A retired lane is present in no mask. Asserted in debug builds after every step.
 
 ### 8.4 Consequences that kernels can rely on
 

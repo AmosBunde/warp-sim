@@ -13,7 +13,7 @@ namespace warpsim::core {
 struct LaneContext {
     Dim2 ntid;
     Dim2 nctaid;
-    Dim2 ctaid;
+    Dim2 ctaid{.x = 0, .y = 0}; // an index, not a size
     unsigned warp_id = 0;
 
     [[nodiscard]] constexpr std::uint32_t linear_index(unsigned lane) const noexcept {
