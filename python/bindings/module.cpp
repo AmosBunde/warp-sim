@@ -76,28 +76,30 @@ PYBIND11_MODULE(_core, m) {
 
     static py::exception<SimFaultError> sim_fault(m, "SimFault");
     static py::exception<AssemblyErrorPy> assembly_error(m, "AssemblyError");
-    py::register_exception_translator([](const std::exception_ptr& p) {
-        try {
-            if (p) {
-                std::rethrow_exception(p);
+    // pybind11 requires a by-value std::exception_ptr for translators.
+    py::register_exception_translator(
+        [](std::exception_ptr p) { // NOLINT(performance-unnecessary-value-param)
+            try {
+                if (p) {
+                    std::rethrow_exception(p);
+                }
+            } catch (const SimFaultError& e) {
+                py::object exc = py::reinterpret_borrow<py::object>(sim_fault.ptr())(e.what());
+                exc.attr("message") = e.fault().message;
+                exc.attr("block") = e.fault().block;
+                exc.attr("warp") = e.fault().warp;
+                exc.attr("lane") = e.fault().lane;
+                exc.attr("pc") = e.fault().pc;
+                exc.attr("address") = e.fault().address;
+                PyErr_SetObject(sim_fault.ptr(), exc.ptr());
+            } catch (const AssemblyErrorPy& e) {
+                py::object exc = py::reinterpret_borrow<py::object>(assembly_error.ptr())(e.what());
+                exc.attr("line") = e.error().line;
+                exc.attr("column") = e.error().column;
+                exc.attr("message") = e.error().message;
+                PyErr_SetObject(assembly_error.ptr(), exc.ptr());
             }
-        } catch (const SimFaultError& e) {
-            py::object exc = py::reinterpret_borrow<py::object>(sim_fault.ptr())(e.what());
-            exc.attr("message") = e.fault().message;
-            exc.attr("block") = e.fault().block;
-            exc.attr("warp") = e.fault().warp;
-            exc.attr("lane") = e.fault().lane;
-            exc.attr("pc") = e.fault().pc;
-            exc.attr("address") = e.fault().address;
-            PyErr_SetObject(sim_fault.ptr(), exc.ptr());
-        } catch (const AssemblyErrorPy& e) {
-            py::object exc = py::reinterpret_borrow<py::object>(assembly_error.ptr())(e.what());
-            exc.attr("line") = e.error().line;
-            exc.attr("column") = e.error().column;
-            exc.attr("message") = e.error().message;
-            PyErr_SetObject(assembly_error.ptr(), exc.ptr());
-        }
-    });
+        });
 
     py::class_<Program>(m, "Program", "An assembled WISA kernel")
         .def_readonly("entry", &Program::entry)
