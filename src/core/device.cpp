@@ -7,6 +7,7 @@
 #include "warpsim/core/types.hpp"
 #include "warpsim/core/warp.hpp"
 #include "warpsim/isa/instruction.hpp"
+#include "warpsim/isa/opcode.hpp"
 #include "warpsim/result.hpp"
 
 #include <cstdint>
@@ -51,6 +52,28 @@ Result<void, Fault> run_block(std::span<const isa::Instruction> program, BlockMe
             }
             if (*outcome != StepOutcome::Finished) {
                 ++stats.instructions_issued;
+                const unsigned lanes = lane_count(warp.last_exec());
+                stats.active_lane_sum += lanes;
+                ++stats.active_lane_histogram[lanes];
+                switch (warp.last_opcode()) {
+                case isa::Opcode::Bra:
+                case isa::Opcode::Exit:
+                    ++stats.control_instructions;
+                    break;
+                case isa::Opcode::BarSync:
+                    ++stats.barrier_instructions;
+                    break;
+                case isa::Opcode::LdGlobal:
+                case isa::Opcode::StGlobal:
+                case isa::Opcode::LdShared:
+                case isa::Opcode::StShared:
+                case isa::Opcode::LdParam:
+                    ++stats.memory_instructions;
+                    break;
+                default:
+                    ++stats.alu_instructions;
+                    break;
+                }
             }
         }
         // Barrier completion: every unfinished warp has arrived.
@@ -79,6 +102,7 @@ Result<void, Fault> run_block(std::span<const isa::Instruction> program, BlockMe
     }
     for (const auto& warp : warps) {
         stats.divergent_branches += warp.divergent_branches();
+        stats.reconvergence_events += warp.reconvergence_events();
     }
     return {};
 }
@@ -115,6 +139,7 @@ Result<LaunchStats, Fault> Device::launch(const assembler::Program& program, Dim
                 return fail(r.error());
             }
             ++stats.blocks_executed;
+            stats.lanes_launched += block.count();
             const MemoryStats& m = memory.stats();
             stats.memory.global_loads += m.global_loads;
             stats.memory.global_stores += m.global_stores;

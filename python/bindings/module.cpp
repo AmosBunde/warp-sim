@@ -59,6 +59,18 @@ private:
 py::dict stats_to_dict(const LaunchStats& s) {
     py::dict d;
     d["instructions_issued"] = s.instructions_issued;
+    d["alu_instructions"] = s.alu_instructions;
+    d["memory_instructions"] = s.memory_instructions;
+    d["control_instructions"] = s.control_instructions;
+    d["barrier_instructions"] = s.barrier_instructions;
+    d["reconvergence_events"] = s.reconvergence_events;
+    d["active_lane_sum"] = s.active_lane_sum;
+    d["lanes_launched"] = s.lanes_launched;
+    py::list histogram;
+    for (const auto count : s.active_lane_histogram) {
+        histogram.append(count);
+    }
+    d["active_lane_histogram"] = histogram;
     d["divergent_branches"] = s.divergent_branches;
     d["barriers_completed"] = s.barriers_completed;
     d["blocks_executed"] = s.blocks_executed;

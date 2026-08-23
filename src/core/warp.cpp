@@ -82,6 +82,7 @@ bool Warp::resolve_stack() {
             // Rule 3: the current path reached its reconvergence point.
             const DivergenceEntry entry = state_.stack.back();
             state_.stack.pop_back();
+            ++reconverged_;
             switch_to(entry, state_.active);
             continue;
         }
@@ -137,6 +138,7 @@ Result<StepOutcome, Fault> Warp::step(std::span<const Instruction> program, Memo
         exec = guard_mask;
     }
     last_exec_ = exec;
+    last_opcode_ = i.opcode;
 
     switch (i.opcode) {
     case Opcode::Bra: {
