@@ -69,7 +69,7 @@ The full specification is `docs/wisa-spec.md` and is versioned with the code: an
 
 | Kernel | File | What it exercises |
 |--------|------|-------------------|
-| Vector add | `kernels/vecadd.wisa` | Baseline coalesced global access, bounds predication |
+| Vector add | `kernels/vecadd.wisa` (float32) and `kernels/vecadd_s32.wisa` (int32) | Baseline coalesced global access, bounds predication |
 | Block reduction | `kernels/reduce.wisa` | Shared memory, barriers, a divergent tree that halves the active lanes each step |
 | Naive matmul | `kernels/matmul_naive.wisa` | Strided global access on one operand, uncoalesced pattern |
 | Tiled matmul | `kernels/matmul_tiled.wisa` | Shared-memory tiles, barriers, coalesced loads, bank-friendly access |

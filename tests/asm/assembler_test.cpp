@@ -58,7 +58,7 @@ AssemblyError must_fail(std::string_view source) {
 }
 
 TEST(Assembler, VecaddExampleAssembles) {
-    const Program program = must_assemble(read_file(WARPSIM_KERNELS_DIR "/examples/vecadd.wisa"));
+    const Program program = must_assemble(read_file(WARPSIM_KERNELS_DIR "/vecadd.wisa"));
     EXPECT_EQ(program.entry, "vecadd");
     EXPECT_EQ(program.params, (std::vector<std::string>{"a", "b", "c", "n"}));
     EXPECT_EQ(program.shared_bytes, 0U);

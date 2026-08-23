@@ -153,27 +153,27 @@ Branch prefixes follow the type label: `feat/`, `test/`, `docs/`, `chore/`.
 
 ## M4 Kernels and differential harness (`area:kernels`)
 
-### P20 Harness infrastructure and vector add (`type:feature`)
+### P20 (#44) Harness infrastructure and vector add (`type:feature`)
 - **Problem.** The Python side needs launch, memory upload and download, counters, and a seeded test pattern.
 - **Design.** pybind11 bindings for `Device`, `assemble`, memory buffers as NumPy arrays, counters as a dictionary. `kernels/vecadd.wisa`, golden model, pytest with seeded randomized sizes and values.
 - **Acceptance.** Vector add matches bit for bit for integer and within tolerance for float across 100 seeds.
 
-### P21 Block reduction kernel (`type:feature`)
+### P21 (#45) Block reduction kernel (`type:feature`)
 - **Problem.** A divergent, barrier-using kernel with shared memory.
 - **Design.** Tree reduction per block with halving active lanes; per-block partial sums compared to the golden model.
 - **Acceptance.** Matches across 100 seeds including sizes that are not powers of two.
 
-### P22 Naive matmul kernel (`type:feature`)
+### P22 (#46) Naive matmul kernel (`type:feature`)
 - **Problem.** The uncoalesced baseline.
 - **Design.** One lane per output element, inner loop over k, one operand strided.
 - **Acceptance.** Matches within tolerance across 100 seeds; coalescing counters record the strided pattern.
 
-### P23 Tiled matmul kernel (`type:feature`)
+### P23 (#47) Tiled matmul kernel (`type:feature`)
 - **Problem.** The optimized comparison point.
 - **Design.** Shared-memory tiles, two barriers per tile step, coalesced loads.
 - **Acceptance.** Matches within tolerance across 100 seeds; bank-conflict counter is zero for the chosen layout.
 
-### P24 Randomized differential suite in CI and first kernel reports (`type:test`)
+### P24 (#48) Randomized differential suite in CI and first kernel reports (`type:test`)
 - **Problem.** Correctness must be checked on every pull request and reported.
 - **Design.** `python/tests/test_differential.py` runs all kernels across seeds; CI runs it; `python/warpsim/report.py` prints a per-kernel table of counters.
 - **Acceptance.** CI job green; the pull request body leads with the report table from a real run.
