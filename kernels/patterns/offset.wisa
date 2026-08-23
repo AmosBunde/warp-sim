@@ -1,0 +1,14 @@
+// One warp: coalesced load whose base is offset by 64 bytes, straddling a
+// segment boundary.
+.entry offset
+.param in
+.param out
+        mov.sreg r0, %laneid
+        shl r1, r0, 2
+        ld.param r2, [in]
+        add r2, r2, r1
+        ld.global r3, [r2+64]
+        ld.param r4, [out]
+        add r4, r4, r1
+        st.global [r4], r3
+        exit

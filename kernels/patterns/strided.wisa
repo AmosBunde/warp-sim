@@ -1,0 +1,14 @@
+// One warp: lane i loads word 32 i (one word per 128-byte segment).
+.entry strided
+.param in
+.param out
+        mov.sreg r0, %laneid
+        shl r1, r0, 7               // 32 words * 4 bytes per lane
+        ld.param r2, [in]
+        add r2, r2, r1
+        ld.global r3, [r2]
+        shl r5, r0, 2
+        ld.param r4, [out]
+        add r4, r4, r5
+        st.global [r4], r3
+        exit
