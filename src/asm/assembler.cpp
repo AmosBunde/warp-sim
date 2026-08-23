@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "lexer.hpp"
+#include "reconvergence.hpp"
 
 namespace warpsim::assembler {
 
@@ -100,6 +101,9 @@ public:
         }
         if (auto resolved = resolve_branches(); !resolved.has_value()) {
             return fail(resolved.error());
+        }
+        if (auto annotated = annotate(); !annotated.has_value()) {
+            return fail(annotated.error());
         }
         return program_;
     }
@@ -490,6 +494,22 @@ private:
             Instruction instruction = decoded.value();
             instruction.imm = Instruction::make_branch_imm(found->second, isa::no_reconvergence);
             program_.words[pending.pc] = isa::encode(instruction).value();
+        }
+        return {};
+    }
+
+    /// Final pass: decode, write reconvergence points, re-encode.
+    Result<void, AssemblyError> annotate() {
+        std::vector<Instruction> decoded;
+        decoded.reserve(program_.words.size());
+        for (const auto word : program_.words) {
+            decoded.push_back(isa::decode(word).value());
+        }
+        if (auto r = annotate_reconvergence(decoded); !r.has_value()) {
+            return fail(AssemblyError{.line = 0, .column = 0, .message = r.error().message});
+        }
+        for (std::size_t pc = 0; pc < decoded.size(); ++pc) {
+            program_.words[pc] = isa::encode(decoded[pc]).value();
         }
         return {};
     }
