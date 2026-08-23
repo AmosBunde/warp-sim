@@ -33,12 +33,16 @@ jobs:
       CXX: ${{ matrix.cxx }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install Python dependencies
+        run: pip install -r python/requirements.txt
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }}
+      - name: Python tests
+        run: PYTHONPATH=python python -m pytest python/tests
 
   asan:
     name: asan

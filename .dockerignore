@@ -1,0 +1,4 @@
+build/
+.git/
+python/warpsim/*.so
+__pycache__/
