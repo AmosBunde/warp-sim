@@ -47,7 +47,7 @@ std::vector<std::uint32_t> read_words(const Device& device, std::uint32_t offset
 }
 
 TEST(Device, VecaddAcrossBlocksWithRaggedTail) {
-    const Program program = must_assemble(read_file(WARPSIM_KERNELS_DIR "/examples/vecadd.wisa"));
+    const Program program = must_assemble(read_file(WARPSIM_KERNELS_DIR "/vecadd.wisa"));
     constexpr std::uint32_t n = 203; // 4 blocks of 64 minus a ragged tail
     Device device(4096);
     std::vector<std::uint32_t> a(n);
@@ -236,7 +236,7 @@ a:      bar.sync
 }
 
 TEST(Device, LaunchIsDeterministic) {
-    const Program program = must_assemble(read_file(WARPSIM_KERNELS_DIR "/examples/vecadd.wisa"));
+    const Program program = must_assemble(read_file(WARPSIM_KERNELS_DIR "/vecadd.wisa"));
     std::vector<std::uint32_t> a(100);
     for (std::uint32_t i = 0; i < 100; ++i) {
         a[i] = std::bit_cast<std::uint32_t>(static_cast<float>(i));

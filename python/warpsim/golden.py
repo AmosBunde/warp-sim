@@ -18,6 +18,16 @@ def _wrap(values: np.ndarray) -> np.ndarray:
     return (values.astype(np.int64) & 0xFFFFFFFF).astype(np.uint32).view(_I32)
 
 
+def vecadd(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Golden model of kernels/vecadd.wisa: one IEEE binary32 addition per element."""
+    return a.astype(np.float32) + b.astype(np.float32)
+
+
+def vecadd_s32(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Golden model of kernels/vecadd_s32.wisa: int32 addition with wraparound."""
+    return _wrap(a.astype(np.int64) + b.astype(np.int64))
+
+
 def torture_nested(x: np.ndarray) -> np.ndarray:
     """Golden model of kernels/torture/nested.wisa."""
     x = x.astype(_I32)

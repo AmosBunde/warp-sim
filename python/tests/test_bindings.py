@@ -5,7 +5,7 @@ import warpsim
 
 
 def test_assemble_and_disassemble_round_trip():
-    program = warpsim.assemble_file(warpsim.kernels_dir() / "examples" / "vecadd.wisa")
+    program = warpsim.assemble_file(warpsim.kernels_dir() / "vecadd.wisa")
     assert program.entry == "vecadd"
     assert program.params == ["a", "b", "c", "n"]
     assert len(program) == 20
@@ -30,7 +30,7 @@ def test_vecadd_matches_numpy():
     off_a = arena.upload(a)
     off_b = arena.upload(b)
     off_c = arena.alloc(n * 4)
-    program = warpsim.assemble_file(warpsim.kernels_dir() / "examples" / "vecadd.wisa")
+    program = warpsim.assemble_file(warpsim.kernels_dir() / "vecadd.wisa")
     block = 128
     grid = (n + block - 1) // block
     stats = device.launch(program, (grid, 1), (block, 1), [off_a, off_b, off_c, n])

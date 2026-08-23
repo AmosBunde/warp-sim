@@ -119,8 +119,9 @@ TEST(RoundTrip, FloatImmediateExtremes) {
 
 TEST(RoundTrip, ExampleKernels) {
     for (const char* name : {"vecadd", "branches"}) {
-        const auto source =
-            read_file(std::string(WARPSIM_KERNELS_DIR "/examples/") + name + ".wisa");
+        const bool shipped = std::string(name) == "vecadd";
+        const auto source = read_file(std::string(WARPSIM_KERNELS_DIR) +
+                                      (shipped ? "/" : "/examples/") + name + ".wisa");
         const auto first = assemble(source);
         ASSERT_TRUE(first.has_value()) << name;
         expect_round_trip(*first, name);
