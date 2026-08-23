@@ -115,6 +115,11 @@ Result<LaunchStats, Fault> Device::launch(const assembler::Program& program, Dim
                 return fail(r.error());
             }
             ++stats.blocks_executed;
+            const MemoryStats& m = memory.stats();
+            stats.memory.global_loads += m.global_loads;
+            stats.memory.global_stores += m.global_stores;
+            stats.memory.global_lane_accesses += m.global_lane_accesses;
+            stats.memory.global_segments += m.global_segments;
         }
     }
     return stats;

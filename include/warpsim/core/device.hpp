@@ -3,6 +3,7 @@
 #include "warpsim/asm/program.hpp"
 #include "warpsim/core/fault.hpp"
 #include "warpsim/core/memory.hpp"
+#include "warpsim/core/memory_stats.hpp"
 #include "warpsim/core/types.hpp"
 #include "warpsim/result.hpp"
 
@@ -19,6 +20,7 @@ struct LaunchStats {
     std::uint64_t barriers_completed = 0;
     std::uint32_t blocks_executed = 0;
     std::uint32_t warps_launched = 0;
+    MemoryStats memory;
 
     [[nodiscard]] constexpr bool operator==(const LaunchStats&) const noexcept = default;
 };

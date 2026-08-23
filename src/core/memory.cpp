@@ -70,3 +70,15 @@ Result<void, AccessFault> BlockMemory::store(Space space, std::uint32_t address,
 }
 
 } // namespace warpsim::core
+
+namespace warpsim::core {
+
+void BlockMemory::on_warp_access(Space space, bool is_store,
+                                 std::span<const std::uint32_t, warp_size> addresses,
+                                 LaneMask exec) {
+    if (space == Space::Global) {
+        analyzer_.on_global(addresses, exec, is_store);
+    }
+}
+
+} // namespace warpsim::core
