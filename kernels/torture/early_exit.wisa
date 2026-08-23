@@ -1,0 +1,43 @@
+// Loop with an early exit and exit inside divergent code.
+// Walk k from 0 while k < 64: stop early when (k * 7 + x[i]) mod 13 == 0 with k > 0,
+// and lanes with x[i] mod 4 == 3 retire without writing out[i] (left as the
+// sentinel the host wrote).
+.entry early_exit
+.param x
+.param out
+.param n
+        mov.sreg r0, %tid.x
+        mov.sreg r1, %ctaid.x
+        mov.sreg r2, %ntid.x
+        mul r1, r1, r2
+        add r0, r0, r1              // i
+        ld.param r3, [n]
+        setp.ge.s32 p0, r0, r3
+    @p0 bra done
+        shl r4, r0, 2
+        ld.param r5, [x]
+        add r5, r5, r4
+        ld.global r6, [r5]          // v
+        and r7, r6, 3
+        setp.eq.s32 p3, r7, 3
+    @p3 exit                        // retire inside the kernel body
+        mov r7, 0                   // k
+        mov r10, 0                  // acc
+top:    setp.ge.s32 p1, r7, 64
+    @p1 bra finish
+        add r10, r10, r7
+        mul r8, r7, 7
+        add r8, r8, r6
+        rem r8, r8, 13
+        setp.eq.s32 p2, r8, 0
+        setp.gt.s32 p4, r7, 0
+    @!p4 bra next
+    @p2 bra finish                  // early exit from the loop
+next:   add r7, r7, 1
+        bra top
+finish:
+        ld.param r9, [out]
+        add r9, r9, r4
+        st.global [r9], r10
+done:
+        exit

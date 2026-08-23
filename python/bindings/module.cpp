@@ -102,6 +102,17 @@ PYBIND11_MODULE(_core, m) {
         });
 
     py::class_<Program>(m, "Program", "An assembled WISA kernel")
+        .def(py::init([](std::string entry, std::vector<std::string> params,
+                         std::uint32_t shared_bytes, std::vector<std::uint64_t> words) {
+                 Program p;
+                 p.entry = std::move(entry);
+                 p.params = std::move(params);
+                 p.shared_bytes = shared_bytes;
+                 p.words = std::move(words);
+                 return p;
+             }),
+             py::arg("entry"), py::arg("params"), py::arg("shared_bytes"), py::arg("words"),
+             "Builds a program from raw words (for tests that patch encodings)")
         .def_readonly("entry", &Program::entry)
         .def_readonly("params", &Program::params)
         .def_readonly("shared_bytes", &Program::shared_bytes)

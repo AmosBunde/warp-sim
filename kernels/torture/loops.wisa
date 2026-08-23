@@ -1,0 +1,33 @@
+// Data-dependent loop trip counts: out[i] = sum_{k=0}^{x[i]-1} (k * k + i) mod 1000003 style accumulation.
+// Each lane iterates x[i] times (0..63); lanes in a warp diverge on the exit test.
+.entry loops
+.param x
+.param out
+.param n
+        mov.sreg r0, %tid.x
+        mov.sreg r1, %ctaid.x
+        mov.sreg r2, %ntid.x
+        mul r1, r1, r2
+        add r0, r0, r1              // i
+        ld.param r3, [n]
+        setp.ge.s32 p0, r0, r3
+    @p0 bra done
+        shl r4, r0, 2
+        ld.param r5, [x]
+        add r5, r5, r4
+        ld.global r6, [r5]          // trips
+        mov r10, 0                  // acc
+        mov r7, 0                   // k
+top:    setp.ge.s32 p1, r7, r6
+    @p1 bra finish
+        mul r8, r7, r7
+        add r8, r8, r0
+        add r10, r10, r8
+        add r7, r7, 1
+        bra top
+finish:
+        ld.param r9, [out]
+        add r9, r9, r4
+        st.global [r9], r10
+done:
+        exit

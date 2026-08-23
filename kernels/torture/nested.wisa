@@ -1,0 +1,52 @@
+// Nested data-dependent branches to depth 3.
+// out[i] = f(x[i]) where the path depends on bits and magnitude of x[i].
+.entry nested
+.param x
+.param out
+.param n
+        mov.sreg r0, %tid.x
+        mov.sreg r1, %ctaid.x
+        mov.sreg r2, %ntid.x
+        mul r1, r1, r2
+        add r0, r0, r1              // i
+        ld.param r3, [n]
+        setp.ge.s32 p0, r0, r3
+    @p0 bra done
+        shl r4, r0, 2
+        ld.param r5, [x]
+        add r5, r5, r4
+        ld.global r6, [r5]          // v = x[i]
+        mov r10, 0
+        and r7, r6, 1
+        setp.eq.s32 p1, r7, 0
+    @p1 bra even
+        // odd
+        add r10, r10, 1
+        setp.lt.s32 p2, r6, 100
+    @p2 bra small_odd
+        // odd and >= 100
+        add r10, r10, 20
+        and r8, r6, 4
+        setp.eq.s32 p3, r8, 0
+    @p3 bra join_odd
+        add r10, r10, 300
+        bra join_odd
+small_odd:
+        sub r10, r10, 7
+join_odd:
+        mul r10, r10, 3
+        bra join
+even:
+        add r10, r10, 2
+        setp.gt.s32 p2, r6, 50
+    @p2 bra big_even
+        mul r10, r10, r6
+        bra join
+big_even:
+        sub r10, r6, r10
+join:
+        ld.param r9, [out]
+        add r9, r9, r4
+        st.global [r9], r10
+done:
+        exit
